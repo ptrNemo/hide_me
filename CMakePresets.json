@@ -1,0 +1,63 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "toolset": { "value": "host=x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+
+    {
+      "name": "app-debug",
+      "displayName": "App x64 Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/app/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_APP": "ON",
+        "BUILD_DRIVER": "OFF"
+      }
+    },
+    {
+      "name": "app-release",
+      "displayName": "App x64 Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/app/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_APP": "ON",
+        "BUILD_DRIVER": "OFF"
+      }
+    },
+
+    {
+      "name": "driver-debug",
+      "displayName": "Driver x64 Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/driver/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_APP": "OFF",
+        "BUILD_DRIVER": "ON"
+      }
+    },
+    {
+      "name": "driver-release",
+      "displayName": "Driver x64 Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/driver/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_APP": "OFF",
+        "BUILD_DRIVER": "ON"
+      }
+    }
+  ]
+}
