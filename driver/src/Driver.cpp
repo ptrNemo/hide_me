@@ -4,7 +4,7 @@ void DriverUnload(PDRIVER_OBJECT driverObject) {
     UNICODE_STRING symLink = RTL_CONSTANT_STRING(DRIVER_SYMLINK_NAME);
     IoDeleteSymbolicLink(&symLink);
 
-    if (driverObject->DeviceObject != nullptr) {
+    if (driverObject->DeviceObject != NULL) {
         IoDeleteDevice(driverObject->DeviceObject);
     }
 
@@ -54,7 +54,7 @@ NTSTATUS DriverEntryMain(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPa
     driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchDeviceControl;
 
     UNICODE_STRING deviceName = RTL_CONSTANT_STRING(DRIVER_DEVICE_NAME);
-    PDEVICE_OBJECT deviceObject = nullptr;
+    PDEVICE_OBJECT deviceObject = NULL;
 
     NTSTATUS status = IoCreateDevice(driverObject, 0, &deviceName, FILE_DEVICE_UNKNOWN,FILE_DEVICE_SECURE_OPEN, FALSE, &deviceObject);
     if (!NT_SUCCESS(status)) {
@@ -87,63 +87,40 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPath) 
     return IoCreateDriver(&driverName, &DriverEntryMain);
 }
 
-void getLoadedModules() {
-    NTSTATUS status;
-    ULONG bufferSize = 0;
-    AUX_MODULE_EXTENDED_INFO* modulesInfo;
-
-    status = AuxKlibInitialize();
-    if (!NT_SUCCESS(status)) {
-        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[-]AuxK libraries initialization failed (0x%08X)\n", status));
-        return;
-    }
-
-    status = AuxKlibQueryModuleInformation(&bufferSize, sizeof(AUX_MODULE_EXTENDED_INFO), NULL);
-
-    if (!NT_SUCCESS(status) || bufferSize == 0) {
-        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[-]Getting modules information size failed (0x%08X)\n", status));
-        return;
-    }
-
-    modulesInfo = static_cast<AUX_MODULE_EXTENDED_INFO*>(ExAllocatePool2(POOL_FLAG_PAGED, bufferSize, POOL_TAG));
-
-    if (modulesInfo == nullptr) {
-        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[-]"));
-        return;
-    }
-
-    status = AuxKlibQueryModuleInformation(&bufferSize, sizeof(AUX_MODULE_EXTENDED_INFO), modulesInfo);
-
-    if (!NT_SUCCESS(status)) {
-        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[-]Getting modules information failed (0x%08X)\n", status));
-        return;
-    }
-
-    ULONG sizeOfArray = bufferSize / sizeof(AUX_MODULE_EXTENDED_INFO);
-    KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "-------LODEAD MODULES-------\n"));
-    for (ULONG i = 0; i < sizeOfArray; i++) {
-        AUX_MODULE_EXTENDED_INFO module = modulesInfo[i];
-
-        VOID* imageBase = module.BasicInfo.ImageBase;
-        UCHAR* fileName = module.FullPathName + module.FileNameOffset;
-
-        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "[+]Name: %s - image base: %p\n", fileName, imageBase));
-    }
-    KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "----------------------------\n"));
-}
-
 void smbios() {
-    /*
-     * trovo processo "ntoskrnl.exe"
-     * prendo il modulo "ntoskrnl.exe"
-     * mi prendo l'address dal quale parte
-     * TODO: trovare funzione che prende e usa la tabella dell'smbios
-     */
+    void* moduleBase = getLoadedModuleBase(reinterpret_cast<const UCHAR *>("ntoskrnl.exe"));
+    if (!moduleBase) {
+        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "[-]Ntoskrnl.exe base not found\n"));
+        return;
+    }
+
+    /*// "\x0F\x10\x05\x00\x00\x00\x00\x0F\x11\x00\x8B", "xxx????xx?x" - boot
+    void* bootEnvInfo =  findPatternImage(static_cast<PCHAR>(moduleBase), PCHAR("\x0F\x10\x05\x00\x00\x00\x00\x0F\x11\x00\x8B"), PCHAR("xxx????xx?x"));
+    if (!bootEnvInfo) {
+        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "[-]BootEnvInfo address not found\n"));
+        return;
+    }
+
+    bootEnvInfo = static_cast<PUCHAR>(bootEnvInfo) + 7 +
+    *reinterpret_cast<PLONG>(static_cast<PUCHAR>(bootEnvInfo) + 3);*/
+
+    // "\x48\x8B\x0D\x00\x00\x00\x00\x48\x85\xC9\x74\x00\x8B\x15", "xxx????xxxx?xx" - smbios table
+    void* smbiosTableInfo = findPatternImage(static_cast<PCHAR>(moduleBase), PCHAR("\x48\x8B\x0D\x00\x00\x00\x00\x48\x85\xC9\x74\x00\x8B\x15"), PCHAR("xxx????xxxx?xx"));
+    if (!smbiosTableInfo) {
+        KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "[-]SmbiosTableInfo address not found\n"));
+        return;
+    }
+
+    smbiosTableInfo = static_cast<PUCHAR>(smbiosTableInfo) + 7
+        + *reinterpret_cast<PLONG>(static_cast<PUCHAR>(smbiosTableInfo) + 3);
+
+    KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "[+]Smbios table address: %p\n", smbiosTableInfo));
 }
 
 void hide() {
-    getLoadedModules();
-    //smbios(); spoof smbios table
+    smbios(); // spoof smbios table
 }
 
-void show() {}
+void show() {
+
+}

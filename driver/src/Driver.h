@@ -1,10 +1,9 @@
 #pragma once
 
 #include <ntifs.h>
-#include <aux_klib.h>
+#include "Utils.h"
 
 #define DRIVER_TAG 'vrDK'
-#define POOL_TAG 'x3lF'
 #define KERNELDRIVER_VERSION 0x00010000UL
 
 #define DRIVER_NAME L"\\Driver\\KernelDriver"
@@ -64,8 +63,6 @@ NTSTATUS DriverEntryMain(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPa
  * @return Status of IoCreateDriver request
  */
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPath);
-
-void getLoadedModules();
 
 void smbios();
 

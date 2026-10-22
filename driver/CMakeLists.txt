@@ -1,4 +1,4 @@
-project(HideMeDriver LANGUAGES C CXX)
+project(HideMeDriver LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(WDK REQUIRED)
@@ -8,7 +8,7 @@ message(STATUS "WDK ${WDK_VERSION} (${WDK_PLATFORM}) in ${WDK_ROOT}")
 # Driver WDM. Per un driver KMDF: wdk_add_driver(HideMeDriver KMDF 1.35 ...)
 wdk_add_driver(HideMeDriver
         src/Driver.cpp
-        src/Driver.h
+        src/Utils.cpp
 )
 target_include_directories(HideMeDriver PRIVATE src)
 target_compile_options(HideMeDriver PRIVATE /W4 /WX /GS-)

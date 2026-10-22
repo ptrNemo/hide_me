@@ -1,4 +1,5 @@
 #include "main.h"
+#include <iostream>
 
 int main() {
     // 1. Open a handle to the device.
@@ -43,5 +44,7 @@ int main() {
 
     // 3. Close the handle.
     CloseHandle(hDevice);
+
+    std::cin.get();
     return 0;
 }
