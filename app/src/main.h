@@ -1,13 +1,36 @@
 #pragma once
 
 #include <windows.h>
-#include <stdio.h>
+#include <lmcons.h>     // UNLEN
+#include <cstdio>
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
-// Driver side creates e.g. L"\\DosDevices\\MyDriver"; user mode opens "\\.\MyDriver".
-#define DEVICE_PATH "\\\\.\\KernelDriver"
+struct RawSMBIOSData {
+    BYTE  Used20CallingMethod;
+    BYTE  SMBIOSMajorVersion;
+    BYTE  SMBIOSMinorVersion;
+    BYTE  DmiRevision;
+    DWORD Length;
+    BYTE  SMBIOSTableData[1];
+};
 
-// The driver must define the identical CTL_CODE macro (ideally in a shared header).
-#define IOCTL_HIDE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)
-#define IOCTL_SHOW CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
+struct SMBIOSHeader {
+    BYTE Type;
+    BYTE Length;   // lunghezza della parte formattata (stringhe escluse)
+    WORD Handle;
+};
 
-int main();
+// SMBIOS Type 1 - System Information
+struct SMBIOSType1 {
+    SMBIOSHeader Header;
+    BYTE Manufacturer;  // indice stringa
+    BYTE ProductName;   // indice stringa
+    BYTE Version;       // indice stringa
+    BYTE SerialNumber;  // indice stringa
+    BYTE UUID[16];      // 2.1+
+    BYTE WakeUpType;    // 2.1+
+    BYTE SKUNumber;     // 2.4+ indice stringa
+    BYTE Family;        // 2.4+ indice stringa
+};
