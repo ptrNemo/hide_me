@@ -135,9 +135,21 @@ static void PrintUserName() {
         printf("User Name      : (vuoto) - errore %lu\n", GetLastError());
 }
 
+// Stampa il seriale del volume C: (lo stesso mostrato da "vol C:").
+static void PrintVolumeSerial() {
+    DWORD serial = 0;
+
+    printf("\n=== GetVolumeInformationA ===\n");
+    if (GetVolumeInformationA("C:\\", nullptr, 0, &serial, nullptr, nullptr, nullptr, 0))
+        printf("Serial C:      : %04lX-%04lX\n", serial >> 16, serial & 0xFFFF);
+    else
+        printf("Serial C:      : (vuoto) - errore %lu\n", GetLastError());
+}
+
 int main() {
     PrintSMBIOS();
     PrintUserName();
+    PrintVolumeSerial();
 
     std::cin.get();
     return 0;

@@ -7,7 +7,6 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPath) 
     KdPrint(("KernelDriver Entry executed\n"));
 
     /*
-     * GetVolumeInformationA("C:\\") -- user mode viene gia fatto
      * GetAdaptersAddresses -- nic spoof viene gia fatto
      * GetComputerNameExA
      *
@@ -23,6 +22,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPath) 
 
     smbios();
     username();
+    volumes();
 
     KdPrint(("Driver executed\n"));
 

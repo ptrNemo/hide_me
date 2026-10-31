@@ -36,6 +36,11 @@ void smbios();
 void username();
 
 /**
+ * @brief Finds the VPB structure into the C:\ volume opening it and it generates a new volume serial.
+ */
+void volumes();
+
+/**
  * @biref Searches the lsap logon session table address using an aob scan into the lsasrv.dll module loaded into the
  * lsass.exe memory.
  *
@@ -97,3 +102,35 @@ bool isInteractiveUserSession(PSID sid);
  * @return True if successfully copied, false if not.
  */
 bool copySidFromLsassProcess(PSID sourceSdi, UCHAR* outBuff);
+
+/**
+ * @brief Opens the root directory of the C: volume.
+ *
+ * The open goes through the file system, so the FILE_OBJECT associated with
+ * the handle has its Vpb field set.
+ *
+ * @param handle Receives the kernel handle to the root directory.
+ * The caller must close it with ZwClose.
+ *
+ */
+void openVolumeHandle(PHANDLE handle);
+
+/**
+ * @brief Gets the FILE_OBJECT from a handle and reads its pointer to the VPB.
+ *
+ * @param handle Handle obtained from openVolumeHandle.
+ * @param fileObject Receives the referenced FILE_OBJECT. If it is not NULL,
+ * the caller must release it with ObDereferenceObject,
+ * even when the function returns STATUS_NOT_FOUND.
+ * @param vpb Receives a pointer to the original VPB, not a copy.
+ * Use it only while fileObject remains referenced.
+ *
+ */
+void getVpb(HANDLE handle, PFILE_OBJECT *fileObject, PVPB *vpb);
+
+/**
+ * @brief Generates a new random serial and it changes the one into the VPB till the reboot.
+ *
+ * @param vpb Pointer to the original VPB.
+ */
+void spoofVolumeSerial(PVPB vpb);

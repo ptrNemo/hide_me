@@ -8,6 +8,7 @@ message(STATUS "WDK ${WDK_VERSION} (${WDK_PLATFORM}) in ${WDK_ROOT}")
 wdk_add_driver(HideMeDriver
         src/driver.cpp
         src/utils.cpp
+        src/spoofs/volumes.cpp
         src/spoofs/username.cpp
         src/spoofs/smbios.cpp
 )
