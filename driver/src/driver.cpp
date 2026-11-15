@@ -6,23 +6,10 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT driverObject, PUNICODE_STRING registryPath) 
 
     KdPrint(("KernelDriver Entry executed\n"));
 
-    /*
-     * GetAdaptersAddresses -- nic spoof viene gia fatto
-     * GetComputerNameExA
-     *
-     * Identificati del monitor vengono letti dal registro
-     * SetupDiGetClassDevsA → individua i dispositivi.
-     * SetupDiEnumDeviceInfo → enumera i dispositivi uno alla volta.
-     * SetupDiOpenDevRegKey → apre la chiave del Registro associata al dispositivo.
-     * RegQueryValueExA("EDID") → legge il valore binario EDID dal Registro.
-     *
-     *
-     */
-
-
     smbios();
-    username();
-    volumes();
+    //username();
+    //volumes();
+    //nic();
 
     KdPrint(("Driver executed\n"));
 

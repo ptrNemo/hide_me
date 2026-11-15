@@ -146,10 +146,94 @@ static void PrintVolumeSerial() {
         printf("Serial C:      : (vuoto) - errore %lu\n", GetLastError());
 }
 
+static const char* IfTypeToString(DWORD t) {
+    switch (t) {
+    case IF_TYPE_ETHERNET_CSMACD:   return "Ethernet";
+    case IF_TYPE_IEEE80211:         return "Wi-Fi";
+    case IF_TYPE_PPP:               return "PPP";
+    case IF_TYPE_SOFTWARE_LOOPBACK: return "Loopback";
+    case IF_TYPE_TUNNEL:            return "Tunnel";
+    case IF_TYPE_OTHER:             return "Other";
+    default:                        return "Valore sconosciuto";
+    }
+}
+
+static const char* OperStatusToString(IF_OPER_STATUS s) {
+    switch (s) {
+    case IfOperStatusUp:             return "Up";
+    case IfOperStatusDown:           return "Down";
+    case IfOperStatusTesting:        return "Testing";
+    case IfOperStatusUnknown:        return "Unknown";
+    case IfOperStatusDormant:        return "Dormant";
+    case IfOperStatusNotPresent:     return "Not Present";
+    case IfOperStatusLowerLayerDown: return "Lower Layer Down";
+    default:                         return "Valore sconosciuto";
+    }
+}
+
+static void PrintAdapter(const IP_ADAPTER_ADDRESSES* a) {
+    printf("Adapter Name   : %s\n", a->AdapterName);
+    printf("Friendly Name  : %ls\n", a->FriendlyName);
+    printf("Description    : %ls\n", a->Description);
+    printf("Type           : %lu (%s)\n", a->IfType, IfTypeToString(a->IfType));
+    printf("Status         : %s\n", OperStatusToString(a->OperStatus));
+
+    printf("MAC            : ");
+    if (a->PhysicalAddressLength == 0)
+        printf("(vuoto)");
+    for (ULONG i = 0; i < a->PhysicalAddressLength; ++i)
+        printf(i ? "-%02X" : "%02X", a->PhysicalAddress[i]);
+    printf("\n");
+
+    for (auto* u = a->FirstUnicastAddress; u; u = u->Next) {
+        const sockaddr* sa = u->Address.lpSockaddr;
+        const void* addr = (sa->sa_family == AF_INET)
+            ? static_cast<const void*>(&reinterpret_cast<const sockaddr_in*>(sa)->sin_addr)
+            : static_cast<const void*>(&reinterpret_cast<const sockaddr_in6*>(sa)->sin6_addr);
+
+        char ip[INET6_ADDRSTRLEN];
+        if (inet_ntop(sa->sa_family, addr, ip, sizeof(ip)))
+            printf("IP             : %s\n", ip);
+    }
+}
+
+// Stampa tutte le schede di rete; se la lista non e' leggibile o e' vuota, stampa "(vuoto)".
+static void PrintAdapters() {
+    const ULONG flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER;
+    ULONG size = 15000;  // Dimensione iniziale consigliata da MSDN
+    std::vector<BYTE> buf;
+    ULONG ret;
+
+    printf("\n=== GetAdaptersAddresses ===\n");
+
+    // Riprova finche' il buffer non basta: la lista puo' cambiare tra una chiamata e l'altra.
+    do {
+        buf.resize(size);
+        ret = GetAdaptersAddresses(AF_UNSPEC, flags, nullptr,
+                                   reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buf.data()), &size);
+    } while (ret == ERROR_BUFFER_OVERFLOW);
+
+    if (ret == ERROR_NO_DATA) {
+        printf("(vuoto)\n");
+        return;
+    }
+    if (ret != NO_ERROR) {
+        printf("(vuoto) - errore %lu\n", ret);
+        return;
+    }
+
+    for (auto* a = reinterpret_cast<const IP_ADAPTER_ADDRESSES*>(buf.data()); a; a = a->Next) {
+        PrintAdapter(a);
+        if (a->Next)
+            printf("\n");
+    }
+}
+
 int main() {
     PrintSMBIOS();
     PrintUserName();
     PrintVolumeSerial();
+    PrintAdapters();
 
     std::cin.get();
     return 0;

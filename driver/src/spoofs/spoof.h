@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "utils.h"
 #include "structures/lsa.h"
+#include "structures/ndis.h"
 
 #define LSASRV_DLL L"lsasrv.dll"
 
@@ -39,6 +40,11 @@ void username();
  * @brief Finds the VPB structure into the C:\ volume opening it and it generates a new volume serial.
  */
 void volumes();
+
+/**
+ * @brief Find the ndisIfList global table doing an aob scan into ndis.sys and changes the interfaces names and mac addresses
+ */
+void nic();
 
 /**
  * @biref Searches the lsap logon session table address using an aob scan into the lsasrv.dll module loaded into the
@@ -134,3 +140,21 @@ void getVpb(HANDLE handle, PFILE_OBJECT *fileObject, PVPB *vpb);
  * @param vpb Pointer to the original VPB.
  */
 void spoofVolumeSerial(PVPB vpb);
+
+PLIST_ENTRY findNidsIfList();
+
+void loopNdisIfList(PLIST_ENTRY ifList);
+
+void spoofMacAddress(IF_PHYSICAL_ADDRESS* macAddress, ULONG& seed);
+
+void spoofIfName(IF_COUNTED_STRING* ifName, ULONG& seed);
+
+void spoofAdapterName(GUID* guid, ULONG& seed);
+
+
+
+void loopSmbiosTable(PVOID smbiosTable);
+
+PPHYSICAL_ADDRESS findSmbiosTablePhysicalAddress();
+
+PUINT findSmbiosTableSize();

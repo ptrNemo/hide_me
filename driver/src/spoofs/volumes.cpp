@@ -1,9 +1,9 @@
 #include "spoof.h"
 
 void volumes() {
-    HANDLE handle = NULL;
-    PFILE_OBJECT fileObject = NULL;
-    PVPB vpb = NULL;
+    HANDLE handle = nullptr;
+    PFILE_OBJECT fileObject = nullptr;
+    PVPB vpb = nullptr;
 
     __try {
         openVolumeHandle(&handle);

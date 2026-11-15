@@ -21,8 +21,6 @@ void username() {
         if (attached) KeUnstackDetachProcess(&apcState);
         ObDereferenceObject(process);
     }
-
-    KdPrint(("Process operation completed\n"));
 }
 
 LSAP_LOGON_SESSION_TABLE* findLsapLogonSessionTable(PEPROCESS process) {

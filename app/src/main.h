@@ -1,11 +1,15 @@
 #pragma once
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 #include <windows.h>
-#include <lmcons.h>     // UNLEN
+#include <lmcons.h>
 #include <cstdio>
 #include <cstdint>
 #include <iostream>
 #include <vector>
+
 
 struct RawSMBIOSData {
     BYTE  Used20CallingMethod;
